@@ -1,0 +1,5 @@
+    NAMESPACE=labs-test
+    APPLICATION_NAME=springrest
+    SA_NAMESPACE:labs-ci-cd
+    READINESS_PATH: "/"
+    READINESS_RESPONSE: "{}"

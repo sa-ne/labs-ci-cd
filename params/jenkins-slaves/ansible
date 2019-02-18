@@ -1,0 +1,4 @@
+SOURCE_REPOSITORY_URL=https://github.com/wmde/jenkins-slave-ansible.git
+SOURCE_CONTEXT_DIR=jenkins-slaves/jenkins-slave-ansible
+NAME=jenkins-slave-ansible
+DOCKERFILE_PATH=Dockerfile

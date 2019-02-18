@@ -1,0 +1,12 @@
+# This is the Ansible Galaxy requirements file to pull in the correct roles
+# to support the operation of CASL provisioning/runs. 
+
+# From 'openshift-applier'
+- src: https://github.com/redhat-cop/openshift-applier
+  scm: git
+  version: v2.0.6
+  name: openshift-applier
+- src: https://github.com/redhat-cop/infra-ansible
+  scm: git
+  version: v1.0.6
+  name: infra-ansible
