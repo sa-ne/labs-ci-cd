@@ -2,45 +2,25 @@
 ansible_connection: local
 
 jenkins_name: jenkins
-sonarqube_name: sonarqube
 hoverfly_name: hoverfly
 app_name: springrest
 
 jenkins:
   build:
     NAME: "{{ jenkins_name }}"
-    SOURCE_REPOSITORY_URL: https://github.com/rht-labs/s2i-config-jenkins.git
-    SOURCE_REPOSITORY_REF: v1.0
-    BUILDER_IMAGE_STREAM_NAME: jenkins-2-rhel7
-    BUILDER_IMAGE_STREAM_TAG_NAME: v3.10.14
-    IMAGE_STREAM_NAMESPACE: "{{ ci_cd_namespace }}"
-  deploy:
-    NAMESPACE: "{{ ci_cd_namespace }}"
     JENKINS_IMAGE_STREAM_TAG: "{{ jenkins_name }}:latest"
     MEMORY_LIMIT: 2Gi
+    MEMORY_REQUEST: 2Gi
     JENKINS_OPTS: "--sessionTimeout=720"
     VOLUME_CAPACITY: 2Gi
 
-sonarqube:
-  build:
-    NAME: "{{ sonarqube_name }}"
-    SOURCE_REPOSITORY_URL: https://github.com/redhat-cop/containers-quickstarts.git
-    SOURCE_REPOSITORY_REF: v1.4
-    SOURCE_CONTEXT_DIR: sonarqube
-  postgresql:
-    POSTGRESQL_DATABASE: sonar
-    VOLUME_CAPACITY: 5
-    POSTGRESQL_PASSWORD: sonar
-    POSTGRESQL_USER: sonar
-  deploy:
-    POSTGRES_DATABASE_NAME: "sonar"
-    
 app:
   build:
     APPLICATION_NAME: "{{ app_name }}"
     NAMESPACE: "{{ ci_cd_namespace }}"
-    SOURCE_REPOSITORY_URL: https://github.com/roridedi/spring-rest.git
+    SOURCE_REPOSITORY_URL: https://github.com/roridedi/spring-petclinic.git
     SOURCE_REPOSITORY_REF: master
+    CONTEXT_DIR: ""
   deploy:
     NAMESPACE: "{{ ci_cd_namespace }}"
     APPLICATION_NAME: "{{ app_name }}"
@@ -52,19 +32,12 @@ openshift_cluster_content:
 - object: ci-cd-builds
   content:
   - name: jenkins-s2i
-    template: "https://raw.githubusercontent.com/rht-labs/openshift-templates/master/jenkins/jenkins-ephemeral-template.yml"
+    template: "https://raw.githubusercontent.com/roridedi/openshift-templates/master/jenkins/jenkins-ephemeral-template.yml"
     params_from_vars: "{{ jenkins.build }}"
     namespace: "{{ ci_cd_namespace }}"
     tags:
     - jenkins
     - jenkins-build
-  - name: sonarqube
-    template: "https://raw.githubusercontent.com/roridedi/containers-quickstarts/v1.4/build-docker-generic/.openshift/templates/docker-build-template.yml"
-    params_from_vars: "{{ sonarqube.build }}"
-    namespace: "{{ ci_cd_namespace }}"
-    tags:
-      - sonarqube
-      - sonarqube-build
 - object: jenkins-slave-nodes
   content:
   - name: jenkins-slave-mvn
@@ -77,21 +50,6 @@ openshift_cluster_content:
     - maven
 - object: ci-cd-deployments
   content:
-  - name: sonarqube
-    template: "https://raw.githubusercontent.com/rht-labs/openshift-templates/v1.0/sonarqube/sonarqube-deployment-template.yml"
-    params_from_vars: "{{ sonarqube.deploy }}"
-    namespace: "{{ ci_cd_namespace }}"
-    tags:
-      - sonarqube
-      - sonarqube-deploy
-  - name: sonarqube-postgresql
-    template: "openshift//postgresql-persistent"
-    params_from_vars: "{{ sonarqube.postgresql }}"
-    namespace: "{{ ci_cd_namespace }}"
-    tags:
-      - sonarqube
-      - sonarqube-postgresql
-      - sonarqube-postgresql-deploy
   - name: nexus
     template: "https://raw.githubusercontent.com/rht-labs/openshift-templates/v1.0/nexus/nexus-deployment-template.yml"
     params_from_vars:
@@ -101,13 +59,6 @@ openshift_cluster_content:
     tags:
       - nexus
       - nexus-deploy
-  - name: jenkins-ephemeral
-    template: "https://raw.githubusercontent.com/rht-labs/openshift-templates/v1.0/jenkins/jenkins-ephemeral-template.yml"
-    params_from_vars: "{{ jenkins.deploy }}"
-    namespace: "{{ ci_cd_namespace }}"
-    tags:
-      - jenkins
-      - jenkins-deploy
   - name: app-build
     template: "https://raw.githubusercontent.com/redhat-cop/container-pipelines/master/basic-spring-boot/.openshift/templates/build.yml"
     params_from_vars: "{{ app.build }}"
@@ -116,28 +67,14 @@ openshift_cluster_content:
       - app
       - app-build
   - name: app-deploy
-    template: "https://raw.githubusercontent.com/redhat-cop/container-pipelines/master/basic-spring-boot/.openshift/templates/deployment.yml"
-    params_from_vars: "{{ app.deploy }}"
-    namespace: "{{ ci_cd_namespace }}"
-    tags:
-      - app
-      - app-deploy
-  - name: app-deploy
-    template: "https://raw.githubusercontent.com/redhat-cop/container-pipelines/master/basic-spring-boot/.openshift/templates/deployment.yml"
-    params_from_vars: "{{ app.deploy }}"
-    namespace: "{{ ci_cd_namespace }}"
-    tags:
-      - app
-      - app-deploy
-  - name: app-deploy
-    template: "https://raw.githubusercontent.com/redhat-cop/container-pipelines/master/basic-spring-boot/.openshift/templates/deployment.yml"
+    template: "https://raw.githubusercontent.com/roridedi/container-pipelines/master/basic-spring-boot/.openshift/templates/deployment.yml"
     params: "{{ playbook_dir }}/params/app/deploy_dev"
     tags:
       - app
       - app-deploy
       - app-dev
   - name: app-deploy
-    template: "https://raw.githubusercontent.com/redhat-cop/container-pipelines/master/basic-spring-boot/.openshift/templates/deployment.yml"
+    template: "https://raw.githubusercontent.com/roridedi/container-pipelines/master/basic-spring-boot/.openshift/templates/deployment.yml"
     params: "{{ playbook_dir }}/params/app/deploy_test"
     tags:
       - app

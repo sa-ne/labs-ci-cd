@@ -17,7 +17,7 @@
         nexus_namespace: "{{ ci_cd_namespace }}"
         nexus_user: "admin"
         nexus_password: "admin123"
-    # - include_role:
-    #     name: roles/infra-ansible/roles/config-nexus
-    #   tags:
-    #     - configure-nexus
+    - include_role:
+        name: roles/infra-ansible/roles/config-nexus
+      tags:
+        - configure-nexus
